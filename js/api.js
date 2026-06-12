@@ -142,6 +142,8 @@
       }
 
       console.info('[ALU.api] ✓ 從後台載入', data.length, '個商品');
+      console.info('[ALU.api] 第一筆 raw data:', data[0]);
+      console.info('[ALU.api] 第一筆所有 key:', data[0] ? Object.keys(data[0]) : '(none)');
       cache.set(key, { data, timestamp: Date.now() });
       return data;
     } catch (e) {

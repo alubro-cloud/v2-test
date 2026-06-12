@@ -47,7 +47,11 @@
         const grid = root.querySelector('#b2c-grid');
         if (grid) grid.innerHTML = `<div class="b2c__empty">載入商品中…</div>`;
         const list = await api.getInventory();
+        console.info('[b2c] 收到 list 長度:', list?.length);
+        console.info('[b2c] list 第一筆:', list?.[0]);
         products = (list || []).map(normalizeProduct).filter(Boolean);
+        console.info('[b2c] normalize 後得到', products.length, '個商品');
+        console.info('[b2c] normalize 後第一筆:', products[0]);
         store.set('products', products);
       }
     } catch (e) {
