@@ -102,8 +102,9 @@
       // [0] type, [1] series, [2] name, [3] price,
       // [4] img2d, [5] img3d, [6] unit, [7] status, [8] desc, [9] sku
       let data = [];
+      let branch = '(unknown)';
       if (json && Array.isArray(json.products)) {
-        console.info('[ALU.api] 偵測到 v1 格式（json.products 2D array），長度:', json.products.length);
+        branch = 'v1 row-based (json.products)';
         let lastType = '';
         let lastSeries = '';
         data = json.products.slice(1).map(row => {
@@ -126,15 +127,17 @@
             sku: row.length > 9 ? String(row[9] || '').trim() : '',
           };
         }).filter(p => p && p.name && p.status !== '下架');
-        console.info('[ALU.api] 解析後扣除「下架」/ 無名項，得到:', data.length, '個商品');
       } else if (Array.isArray(json)) {
-        console.info('[ALU.api] 偵測到 plain array 格式');
+        branch = 'plain array';
         data = json;
       } else if (json && Array.isArray(json.inventory)) {
+        branch = 'json.inventory';
         data = json.inventory;
       } else if (json && Array.isArray(json.data)) {
+        branch = 'json.data';
         data = json.data;
       }
+      console.info('[ALU.api] 走了 branch:', branch);
 
       if (data.length === 0) {
         console.warn('[ALU.api] ⚠ 後台回傳空清單或解析失敗，改用 fallback');
@@ -142,8 +145,17 @@
       }
 
       console.info('[ALU.api] ✓ 從後台載入', data.length, '個商品');
-      console.info('[ALU.api] 第一筆 raw data:', data[0]);
-      console.info('[ALU.api] 第一筆所有 key:', data[0] ? Object.keys(data[0]) : '(none)');
+      // 用 JSON.stringify 強制把第一筆內容轉成字串（保證看得到）
+      try {
+        console.info('[ALU.api] data[0] JSON:', JSON.stringify(data[0]).slice(0, 400));
+      } catch (e) {
+        console.info('[ALU.api] data[0] (無法 stringify):', data[0]);
+      }
+      // 印出 GAS 回的 raw json 整個（限 500 字避免太長）
+      try {
+        console.info('[ALU.api] raw json 預覽:', JSON.stringify(json).slice(0, 500));
+      } catch (e) { /* ignore */ }
+
       cache.set(key, { data, timestamp: Date.now() });
       return data;
     } catch (e) {
