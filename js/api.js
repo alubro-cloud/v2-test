@@ -87,8 +87,8 @@
     }
 
     try {
-      const fetchUrl = `${API_URL}?action=getInventory&t=${Date.now()}`;
-      console.info('[ALU.api] 開始 fetch:', fetchUrl);
+      const fetchUrl = `${API_URL}?action=getProducts&t=${Date.now()}`;
+      console.info('[ALU.api] 開始 fetch (getProducts):', fetchUrl);
       const res = await fetch(fetchUrl);
       console.info('[ALU.api] fetch 回應 status:', res.status, 'ok:', res.ok);
       const json = await res.json();
@@ -189,6 +189,6 @@
   }
 
   global.ALU = global.ALU || {};
-  global.ALU.api = { getInventory, submitOrder, getOrders, IS_OFFLINE };
+  global.ALU.api = { getInventory, submitOrder, getOrders, IS_OFFLINE, FALLBACK_PRODUCTS };
 
 })(window);

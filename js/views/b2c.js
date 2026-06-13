@@ -12,19 +12,27 @@
 
   // 從 API 拿到的商品 normalize 成統一結構
   function normalizeProduct(raw) {
-    const { format } = window.ALU;
+    const { format, api } = window.ALU;
     const nameRaw = raw.name || raw['品項名稱'] || raw['產品名稱'] || '';
     if (!nameRaw) return null;
     const { name, sku: parsedSku } = format.parseNameWithSKU(nameRaw);
+    const sku = raw.sku || raw['內部編號(SKU)'] || raw['內部編號'] || parsedSku || '';
+
+    // GAS 後台只回庫存欄位（category, series, name, stock）→ 用 FALLBACK 補價格/圖
+    const catalog = (api.FALLBACK_PRODUCTS || []).find(f => f.sku === sku) || {};
+
     return {
       name,
-      sku: raw.sku || raw['內部編號(SKU)'] || raw['內部編號'] || parsedSku || '',
-      type: raw.type || raw['產品主分類'] || '',
-      series: raw.series || raw['產品類型'] || '',
-      price: Number(raw.price || raw['單價'] || 0),
-      unit: raw.unit || raw['單位'] || '',
-      img2d: raw.img2d || raw['圖片名稱(鋁材圖/配件2D圖)'] || raw['圖2D'] || '',
-      img3d: raw.img3d || raw['圖片名稱(配件3D圖)'] || raw['圖3D'] || '',
+      sku,
+      // 後台用 category，v2 內部用 type
+      type:    raw.type   || raw.category || raw['主分類'] || raw['產品主分類'] || catalog.type   || '',
+      series:  raw.series || raw['產品類型'] || catalog.series || '',
+      price:   Number(raw.price || raw['單價']) || catalog.price || 0,
+      unit:    raw.unit || raw['單位'] || catalog.unit || '',
+      // 後台 image 單欄 fallback；img2d/img3d 從 catalog 補
+      img2d:   raw.img2d || raw.image || raw['圖片名稱(鋁材圖/配件2D圖)'] || raw['圖2D'] || catalog.img2d || '',
+      img3d:   raw.img3d || raw['圖片名稱(配件3D圖)'] || raw['圖3D'] || catalog.img3d || '',
+      stock:   Number(raw.stock) || 0,
     };
   }
 
